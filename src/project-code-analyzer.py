@@ -128,10 +128,11 @@ def visualize_graph(G):
     plt.savefig("code_graph.png", format="png", dpi=300)
     plt.close()
 
-    
+
 # Usage
 project_path = './sample_project'
 analysis = analyze_project(project_path)
 G = create_graph(analysis)
 visualize_graph(G)
+
 print("Graph has been saved as 'code_graph.png'")
