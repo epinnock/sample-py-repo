@@ -29,6 +29,7 @@ The `CodeAnalyzer` class extends `ast.NodeVisitor` to traverse the Abstract Synt
 
 ```python
 class CodeAnalyzer(ast.NodeVisitor):
+    
     def __init__(self):
         self.definitions = defaultdict(lambda: defaultdict(set))
         self.usages = defaultdict(lambda: defaultdict(list))
@@ -169,7 +170,6 @@ def visualize_graph(G):
     labels = {node: f"{data['type']}:\n{data['name']}" for node, data in G.nodes(data=True)}
     nx.draw_networkx_labels(G, pos, labels, font_size=8)
     
-
     plt.title("Code Structure and Dependencies")
     plt.axis('off')
     plt.tight_layout()
