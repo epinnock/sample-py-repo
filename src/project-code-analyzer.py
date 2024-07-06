@@ -5,6 +5,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 class CodeAnalyzer(ast.NodeVisitor):
+    
     def __init__(self):
         self.definitions = defaultdict(lambda: defaultdict(set))
         self.usages = defaultdict(lambda: defaultdict(list))
