@@ -135,4 +135,5 @@ analysis = analyze_project(project_path)
 G = create_graph(analysis)
 visualize_graph(G)
 
+
 print("Graph has been saved as 'code_graph.png'")
