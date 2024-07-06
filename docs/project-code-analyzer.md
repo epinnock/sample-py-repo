@@ -1,19 +1,27 @@
-# Code Analyzer and Visualizer
+# Code Analysis and Visualization Tool
 
-This article explains a Python script designed to analyze and visualize the structure and dependencies of a Python project. The script uses the `ast` module to parse Python code, `networkx` to create a directed graph of the code structure, and `matplotlib` to visualize the graph.
+This article explains a Python script that analyzes and visualizes the structure and dependencies of a Python project. The tool performs static code analysis, creates a graph representation of the code structure, and generates a visual graph of the project's components and their relationships.
 
 ## Table of Contents
-1. [Imports](#imports)
-2. [Class `CodeAnalyzer`](#class-codeanalyzer)
-3. [Function `analyze_file`](#function-analyze_file)
-4. [Function `analyze_project`](#function-analyze_project)
-5. [Function `create_graph`](#function-create_graph)
-6. [Function `visualize_graph`](#function-visualize_graph)
-7. [Usage](#usage)
 
-## Imports
+1. [Overview](#overview)
+2. [Dependencies](#dependencies)
+3. [Code Structure](#code-structure)
+4. [Key Components](#key-components)
+5. [Usage](#usage)
 
-The script begins by importing necessary modules:
+## Overview
+
+This tool is designed to help developers understand the structure and dependencies of their Python projects. It performs the following main tasks:
+
+1. Analyzes Python source code files in a given project directory.
+2. Extracts information about function definitions, class definitions, variable assignments, and their usages.
+3. Creates a graph representation of the code structure.
+4. Generates a visual graph showing the relationships between different components of the project.
+
+## Dependencies
+
+The script relies on the following Python libraries:
 
 ```python
 import ast
@@ -23,169 +31,92 @@ import networkx as nx
 import matplotlib.pyplot as plt
 ```
 
-## Class `CodeAnalyzer`
+- `ast`: For parsing Python source code into an Abstract Syntax Tree (AST).
+- `os`: For file and directory operations.
+- `collections.defaultdict`: For creating nested dictionaries with default values.
+- `networkx`: For creating and manipulating graphs.
+- `matplotlib.pyplot`: For visualizing the graph.
 
-The `CodeAnalyzer` class extends `ast.NodeVisitor` to traverse the Abstract Syntax Tree (AST) of Python code and collect information about definitions and usages of functions, classes, and variables.
+## Code Structure
+
+The code is organized into several main components:
+
+1. `CodeAnalyzer` class: Handles the parsing and analysis of individual Python files.
+2. `analyze_file` function: Analyzes a single Python file using the `CodeAnalyzer`.
+3. `analyze_project` function: Analyzes an entire Python project by iterating through its files.
+4. `create_graph` function: Creates a graph representation of the analyzed project.
+5. `visualize_graph` function: Generates a visual representation of the graph.
+
+## Key Components
+
+### CodeAnalyzer Class
+
+The `CodeAnalyzer` class is a subclass of `ast.NodeVisitor` and is responsible for traversing the AST of Python files. It keeps track of definitions and usages of functions, classes, variables, and methods.
+
+Key methods:
 
 ```python
 class CodeAnalyzer(ast.NodeVisitor):
     def __init__(self):
-        self.definitions = defaultdict(lambda: defaultdict(set))
-        self.usages = defaultdict(lambda: defaultdict(list))
-        self.current_file = ""
-        self.current_class = None
-        self.current_function = None
+        # ... initialization ...
 
     def visit_FunctionDef(self, node):
-        self.definitions['function'][node.name].add((self.current_file, node.lineno))
-        parent_function = self.current_function
-        self.current_function = node.name
-        self.generic_visit(node)
-        self.current_function = parent_function
+        # ... handle function definitions ...
 
     def visit_ClassDef(self, node):
-        self.definitions['class'][node.name].add((self.current_file, node.lineno))
-        parent_class = self.current_class
-        self.current_class = node.name
-        self.generic_visit(node)
-        self.current_class = parent_class
+        # ... handle class definitions ...
 
     def visit_Assign(self, node):
-        for target in node.targets:
-            if isinstance(target, ast.Name):
-                self.definitions['variable'][target.id].add((self.current_file, node.lineno))
-        self.generic_visit(node)
+        # ... handle variable assignments ...
 
     def visit_Name(self, node):
-        if isinstance(node.ctx, ast.Load):
-            context = self.get_context()
-            self.usages['variable'][node.id].append((self.current_file, node.lineno, context))
-        self.generic_visit(node)
+        # ... handle variable usages ...
 
     def visit_Call(self, node):
-        context = self.get_context()
-        if isinstance(node.func, ast.Name):
-            self.usages['function'][node.func.id].append((self.current_file, node.func.lineno, context))
-        elif isinstance(node.func, ast.Attribute):
-            self.usages['method'][node.func.attr].append((self.current_file, node.func.lineno, context))
-        self.generic_visit(node)
+        # ... handle function and method calls ...
 
     def get_context(self):
-        if self.current_class and self.current_function:
-            return f"{self.current_class}.{self.current_function}"
-        elif self.current_function:
-            return self.current_function
-        elif self.current_class:
-            return self.current_class
-        return None
+        # ... determine the current context ...
 ```
 
-## Function `analyze_file`
+### Project Analysis
 
-This function analyzes a single Python file and returns the definitions and usages found in it.
-
-```python
-def analyze_file(file_path, relative_path):
-    with open(file_path, 'r') as file:
-        content = file.read()
-    tree = ast.parse(content)
-    analyzer = CodeAnalyzer()
-    analyzer.current_file = relative_path
-    analyzer.visit(tree)
-    return analyzer.definitions, analyzer.usages
-```
-
-## Function `analyze_project`
-
-This function analyzes an entire project by walking through the directory structure and aggregating the results from individual files.
+The `analyze_project` function walks through the project directory, analyzes each Python file, and aggregates the results:
 
 ```python
 def analyze_project(project_path):
-    project_analysis = {
-        'definitions': defaultdict(lambda: defaultdict(set)),
-        'usages': defaultdict(lambda: defaultdict(list))
-    }
-
-    for root, _, files in os.walk(project_path):
-        for file in files:
-            if file.endswith('.py'):
-                full_path = os.path.join(root, file)
-                relative_path = os.path.relpath(full_path, project_path)
-                definitions, usages = analyze_file(full_path, relative_path)
-                for def_type, def_dict in definitions.items():
-                    for name, locations in def_dict.items():
-                        project_analysis['definitions'][def_type][name].update(locations)
-                for usage_type, usage_dict in usages.items():
-                    for name, locations in usage_dict.items():
-                        project_analysis['usages'][usage_type][name].extend(locations)
-
-    return project_analysis
+    # ... project analysis logic ...
 ```
 
-## Function `create_graph`
+### Graph Creation and Visualization
 
-This function creates a directed graph (`DiGraph`) from the analysis results, representing the structure and dependencies of the code.
+The `create_graph` function builds a `networkx.DiGraph` object based on the analysis results:
 
 ```python
 def create_graph(analysis):
-    G = nx.DiGraph()
-    
-    # Add nodes
-    for def_type, def_dict in analysis['definitions'].items():
-        for name, locations in def_dict.items():
-            node_id = f"{def_type}:{name}"
-            G.add_node(node_id, type=def_type, name=name, locations=locations)
-
-    # Add edges
-    for usage_type, usage_dict in analysis['usages'].items():
-        for name, locations in usage_dict.items():
-            for loc in locations:
-                file, line, context = loc
-                if context:
-                    source_id = f"function:{context}" if '.' not in context else f"method:{context}"
-                    target_id = f"{usage_type}:{name}"
-                    if G.has_node(source_id) and G.has_node(target_id):
-                        G.add_edge(source_id, target_id, file=file, line=line)
-
-    return G
+    # ... graph creation logic ...
 ```
 
-## Function `visualize_graph`
-
-This function visualizes the graph using `matplotlib`.
+The `visualize_graph` function uses `matplotlib` to create a visual representation of the graph:
 
 ```python
 def visualize_graph(G):
-    pos = nx.spring_layout(G)
-    plt.figure(figsize=(12, 8))
-    
-    # Draw nodes
-    nx.draw_networkx_nodes(G, pos, node_size=700, node_color='lightblue')
-    
-    # Draw edges
-    nx.draw_networkx_edges(G, pos, edge_color='gray', arrows=True)
-    
-    # Draw labels
-    labels = {node: f"{data['type']}:\n{data['name']}" for node, data in G.nodes(data=True)}
-    nx.draw_networkx_labels(G, pos, labels, font_size=8)
-    
-    plt.title("Code Structure and Dependencies")
-    plt.axis('off')
-    plt.tight_layout()
-    plt.savefig("code_graph.png", format="png", dpi=300)
-    plt.close()
+    # ... graph visualization logic ...
 ```
 
 ## Usage
 
-The script can be used to analyze a project and visualize its structure and dependencies.
+To use the tool, simply specify the path to your Python project and run the script:
 
 ```python
 project_path = './sample_project'
 analysis = analyze_project(project_path)
 G = create_graph(analysis)
 visualize_graph(G)
+
 print("Graph has been saved as 'code_graph.png'")
 ```
 
-This will save a visualization of the code structure and dependencies as `code_graph.png`.
+This will analyze the project, create a graph representation, and save a visualization of the graph as "code_graph.png" in the current directory.
+
+The resulting graph provides a visual overview of the project structure, showing relationships between functions, classes, and variables across different files in the project.
