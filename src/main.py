@@ -1,6 +1,2 @@
-def hello_world():
-    message = "Hello Worlds"
-    message = "Hello Worlds"
-    message = "Hello Worlds"
-    message = "Hello Worlds"
+def hello_world(message):
     print(message)
