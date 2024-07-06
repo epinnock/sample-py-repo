@@ -121,13 +121,14 @@ def visualize_graph(G):
     labels = {node: f"{data['type']}:\n{data['name']}" for node, data in G.nodes(data=True)}
     nx.draw_networkx_labels(G, pos, labels, font_size=8)
     
-    
+
     plt.title("Code Structure and Dependencies")
     plt.axis('off')
     plt.tight_layout()
     plt.savefig("code_graph.png", format="png", dpi=300)
     plt.close()
 
+    
 # Usage
 project_path = './sample_project'
 analysis = analyze_project(project_path)
