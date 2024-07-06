@@ -1,6 +1,6 @@
 # Code Analyzer and Visualizer
 
-This article explains a Python script designed to analyze and visualize the structure and dependencies of a Python project. The script uses the `ast` module to parse Python code, `networkx` to create a graph of the code structure, and `matplotlib` to visualize the graph.
+This article explains a Python script designed to analyze and visualize the structure and dependencies of a Python project. The script uses the `ast` module to parse Python code, `networkx` to create a directed graph of the code structure, and `matplotlib` to visualize the graph.
 
 ## Table of Contents
 1. [Imports](#imports)
@@ -29,7 +29,6 @@ The `CodeAnalyzer` class extends `ast.NodeVisitor` to traverse the Abstract Synt
 
 ```python
 class CodeAnalyzer(ast.NodeVisitor):
-    
     def __init__(self):
         self.definitions = defaultdict(lambda: defaultdict(set))
         self.usages = defaultdict(lambda: defaultdict(list))
@@ -83,7 +82,7 @@ class CodeAnalyzer(ast.NodeVisitor):
 
 ## Function `analyze_file`
 
-This function reads a Python file, parses it into an AST, and uses the `CodeAnalyzer` class to collect definitions and usages.
+This function reads a Python file, parses it into an AST, and uses `CodeAnalyzer` to collect definitions and usages.
 
 ```python
 def analyze_file(file_path, relative_path):
@@ -98,7 +97,7 @@ def analyze_file(file_path, relative_path):
 
 ## Function `analyze_project`
 
-This function walks through a project directory, analyzes each Python file, and aggregates the results.
+This function recursively analyzes all Python files in a project directory.
 
 ```python
 def analyze_project(project_path):
@@ -179,7 +178,7 @@ def visualize_graph(G):
 
 ## Usage
 
-The script can be used to analyze a project and visualize its structure and dependencies.
+The script can be used to analyze and visualize a project by specifying the project path.
 
 ```python
 project_path = './sample_project'
@@ -190,4 +189,4 @@ visualize_graph(G)
 print("Graph has been saved as 'code_graph.png'")
 ```
 
-This will save a visualization of the project's code structure and dependencies as `code_graph.png`.
+This will save a visualization of the code structure and dependencies as `code_graph.png`.
