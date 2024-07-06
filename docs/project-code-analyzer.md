@@ -1,6 +1,6 @@
 # Code Analyzer and Visualizer
 
-This article explains a Python script designed to analyze and visualize the structure and dependencies of a Python project. The script uses the `ast` module to parse Python code, `networkx` for graph creation, and `matplotlib` for visualization.
+This article explains a Python script designed to analyze and visualize the structure and dependencies of a Python project. The script uses the `ast` module to parse Python code, `networkx` to create a graph of the code structure, and `matplotlib` to visualize the graph.
 
 ## Table of Contents
 1. [Imports](#imports)
@@ -29,7 +29,6 @@ The `CodeAnalyzer` class extends `ast.NodeVisitor` to traverse the Abstract Synt
 
 ```python
 class CodeAnalyzer(ast.NodeVisitor):
-    
     def __init__(self):
         self.definitions = defaultdict(lambda: defaultdict(set))
         self.usages = defaultdict(lambda: defaultdict(list))
@@ -83,7 +82,7 @@ class CodeAnalyzer(ast.NodeVisitor):
 
 ## Function `analyze_file`
 
-This function reads a Python file, parses it into an AST, and uses `CodeAnalyzer` to collect definitions and usages.
+This function reads a Python file, parses it into an AST, and uses the `CodeAnalyzer` class to collect definitions and usages.
 
 ```python
 def analyze_file(file_path, relative_path):
@@ -125,7 +124,7 @@ def analyze_project(project_path):
 
 ## Function `create_graph`
 
-This function creates a directed graph using `networkx` from the analysis results.
+This function creates a directed graph using `networkx` from the collected definitions and usages.
 
 ```python
 def create_graph(analysis):
@@ -153,7 +152,7 @@ def create_graph(analysis):
 
 ## Function `visualize_graph`
 
-This function visualizes the graph using `matplotlib`.
+This function uses `matplotlib` to visualize the graph created by `create_graph`.
 
 ```python
 def visualize_graph(G):
@@ -170,6 +169,7 @@ def visualize_graph(G):
     labels = {node: f"{data['type']}:\n{data['name']}" for node, data in G.nodes(data=True)}
     nx.draw_networkx_labels(G, pos, labels, font_size=8)
     
+
     plt.title("Code Structure and Dependencies")
     plt.axis('off')
     plt.tight_layout()
