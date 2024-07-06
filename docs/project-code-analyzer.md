@@ -1,50 +1,93 @@
-```markdown
-# CodeAnalyzer: Python Code Analysis Tool
+# CodeAnalyzer: A Comprehensive Guide
 
 ## Introduction
-The `CodeAnalyzer` is a Python tool designed to analyze and visualize the structure and dependencies of a Python project. It uses the Abstract Syntax Tree (AST) to parse Python files, tracking definitions and usages of classes, functions, and variables. This tool is particularly useful for understanding the interdependencies within a codebase and for code refactoring.
+
+The `CodeAnalyzer` is a sophisticated tool designed to parse and analyze Python codebases, providing detailed insights into the structure, dependencies, and usage of code elements such as classes, functions, and variables. This tool is particularly useful for developers looking to understand, refactor, or optimize large codebases by visualizing relationships and dependencies between different parts of the code.
 
 ## Table of Contents
-1. [Overview](#overview)
-2. [Dependencies](#dependencies)
-3. [Code Structure](#code-structure)
-4. [Key Components](#key-components)
-5. [Usage](#usage)
-6. [Algorithms and Data Structures](#algorithms-and-data-structures)
-7. [System Integration](#system-integration)
-8. [Performance and Limitations](#performance-and-limitations)
-9. [Testing and Debugging](#testing-and-debugging)
-10. [Configuration Options](#configuration-options)
-11. [Conclusion](#conclusion)
 
-## Overview
-The `CodeAnalyzer` tool provides a comprehensive analysis of a Python project by parsing each file and constructing a graph of dependencies. It identifies definitions and usages of various code elements such as classes, functions, and variables, and visualizes these relationships using a directed graph.
+1. [Imports and Dependencies](#imports-and-dependencies)
+2. [Code Structure Overview](#code-structure-overview)
+3. [Class: CodeAnalyzer](#class-codeanalyzer)
+4. [Function: analyze_file](#function-analyze_file)
+5. [Function: analyze_project](#function-analyze_project)
+6. [Function: create_graph](#function-create_graph)
+7. [Function: visualize_graph](#function-visualize_graph)
+8. [Usage Examples](#usage-examples)
+9. [Error Handling and Edge Cases](#error-handling-and-edge-cases)
+10. [Performance Considerations](#performance-considerations)
+11. [Testing and Debugging](#testing-and-debugging)
+12. [Configuration and Customization](#configuration-and-customization)
+13. [Role in the Overall Architecture](#role-in-the-overall-architecture)
+14. [Known Limitations and Future Improvements](#known-limitations-and-future-improvements)
+15. [Contribution Guidelines](#contribution-guidelines)
+16. [Major Updates and Documentation History](#major-updates-and-documentation-history)
 
-## Dependencies
-- `ast`: Python's Abstract Syntax Tree module for parsing Python source code.
-- `os`: Standard library for interacting with the operating system.
-- `collections`: Standard library for specialized container datatypes.
-- `networkx`: A Python package for creating and manipulating complex networks.
-- `matplotlib`: A plotting library for creating visualizations in Python.
+## Imports and Dependencies
 
-## Code Structure
-The code is organized into several main components:
-- `CodeAnalyzer` class: A subclass of `ast.NodeVisitor` that visits nodes in the AST to collect definitions and usages.
-- `analyze_file` function: Parses a single Python file and returns its definitions and usages.
-- `analyze_project` function: Recursively analyzes all Python files in a project directory.
-- `create_graph` function: Constructs a `networkx` graph from the project analysis.
-- `visualize_graph` function: Uses `matplotlib` to visualize the graph.
+- `ast`: Provides tools for processing Python abstract syntax trees (ASTs).
+- `os`: Offers functions for interacting with the operating system, used here for file path manipulations.
+- `collections.defaultdict`: A dictionary subclass that provides default values for missing keys, simplifying the collection of definitions and usages.
+- `networkx as nx`: A powerful library for creating, manipulating, and studying the structure, dynamics, and functions of complex networks.
+- `matplotlib.pyplot as plt`: A plotting library used for visualizing the graph of code dependencies.
 
-## Key Components
-### CodeAnalyzer Class
-The `CodeAnalyzer` class is the core of the tool, responsible for visiting nodes in the AST and collecting data on definitions and usages. Key methods include:
-- `visit_FunctionDef`: Tracks function definitions.
-- `visit_ClassDef`: Tracks class definitions.
-- `visit_Assign`: Tracks variable assignments.
-- `visit_Name`: Tracks variable usages.
-- `visit_Call`: Tracks function and method calls.
+## Code Structure Overview
 
-### analyze_file Function
+The code is structured around a main class `CodeAnalyzer` and several functions that facilitate the analysis of individual files and entire projects. The class uses Python's `ast` module to traverse and analyze the abstract syntax tree of Python code, collecting data on definitions and usages of various code elements.
+
+## Class: CodeAnalyzer
+
+### Purpose
+
+The `CodeAnalyzer` class is designed to traverse and analyze Python code's abstract syntax tree, collecting data on definitions and usages of classes, functions, and variables.
+
+### Methods
+
+- `__init__`: Initializes the analyzer with data structures to hold definitions and usages.
+- `visit_FunctionDef`, `visit_ClassDef`, `visit_Assign`, `visit_Name`, `visit_Call`: These methods override the `NodeVisitor` methods to handle specific types of nodes in the AST, recording the relevant information.
+- `get_context`: Determines the current context (class or function) for recording usages.
+
+### Internal Workings
+
+The class uses a combination of overridden `NodeVisitor` methods and custom methods to traverse the AST, recording the location and context of each definition and usage.
+
+### Code Snippet
+
+```python
+class CodeAnalyzer(ast.NodeVisitor):
+    def __init__(self):
+        self.definitions = defaultdict(lambda: defaultdict(set))
+        self.usages = defaultdict(lambda: defaultdict(list))
+        self.current_file = ""
+        self.current_class = None
+        self.current_function = None
+```
+
+### Data Structures
+
+- `defaultdict`: Used to store definitions and usages, providing default values for missing keys.
+
+### Interactions
+
+The class interacts with the `ast` module to traverse and analyze the AST, and with the `analyze_file` and `analyze_project` functions to provide analysis results.
+
+## Function: analyze_file
+
+### Purpose
+
+Analyzes a single Python file, returning the definitions and usages found in the file.
+
+### Parameters
+
+- `file_path` (str): The full path to the file to be analyzed.
+- `relative_path` (str): The relative path of the file within the project.
+
+### Return Value
+
+- Tuple of two dictionaries: `definitions` and `usages`.
+
+### Code Snippet
+
 ```python
 def analyze_file(file_path, relative_path):
     with open(file_path, 'r') as file:
@@ -56,7 +99,22 @@ def analyze_file(file_path, relative_path):
     return analyzer.definitions, analyzer.usages
 ```
 
-### analyze_project Function
+## Function: analyze_project
+
+### Purpose
+
+Analyzes an entire project directory, aggregating the results from individual file analyses.
+
+### Parameters
+
+- `project_path` (str): The path to the root directory of the project.
+
+### Return Value
+
+- Dictionary containing aggregated `definitions` and `usages`.
+
+### Code Snippet
+
 ```python
 def analyze_project(project_path):
     project_analysis = {
@@ -80,39 +138,158 @@ def analyze_project(project_path):
     return project_analysis
 ```
 
-## Usage
-To use the `CodeAnalyzer`, follow these steps:
-1. Set the `project_path` variable to the root directory of your Python project.
-2. Call the `analyze_project` function with the project path.
-3. Create a graph using the `create_graph` function.
-4. Visualize the graph using the `visualize_graph` function.
+## Function: create_graph
 
-Example:
+### Purpose
+
+Creates a directed graph representing the relationships and dependencies between different code elements.
+
+### Parameters
+
+- `analysis` (dict): The analysis results from `analyze_project`.
+
+### Return Value
+
+- `networkx.DiGraph`: A directed graph representing the code structure and dependencies.
+
+### Code Snippet
+
 ```python
-project_path = './sample_project'
-analysis = analyze_project(project_path)
-G = create_graph(analysis)
-visualize_graph(G)
+def create_graph(analysis):
+    G = nx.DiGraph()
+    
+    # Add nodes
+    for def_type, def_dict in analysis['definitions'].items():
+        for name, locations in def_dict.items():
+            node_id = f"{def_type}:{name}"
+            G.add_node(node_id, type=def_type, name=name, locations=locations)
+
+    # Add edges
+    for usage_type, usage_dict in analysis['usages'].items():
+        for name, locations in usage_dict.items():
+            for loc in locations:
+                file, line, context = loc
+                if context:
+                    source_id = f"function:{context}" if '.' not in context else f"method:{context}"
+                    target_id = f"{usage_type}:{name}"
+                    if G.has_node(source_id) and G.has_node(target_id):
+                        G.add_edge(source_id, target_id, file=file, line=line)
+
+    return G
 ```
 
-## Algorithms and Data Structures
-The tool uses the following algorithms and data structures:
-- **Abstract Syntax Tree (AST)**: Parses Python code into a tree structure representing the code's syntax.
-- **Directed Graph**: Represents dependencies between code elements using `networkx`.
+## Function: visualize_graph
 
-## System Integration
-The `CodeAnalyzer` can be integrated into a larger development workflow to provide insights into code dependencies and structure. It can be used as a standalone tool or integrated into a CI/CD pipeline for automated code analysis.
+### Purpose
 
-## Performance and Limitations
-- **Performance**: The tool's performance depends on the size of the project. Large projects may take longer to analyze.
-- **Limitations**: The tool currently does not support analyzing Python code within compiled extensions or Cython code.
+Visualizes the graph created by `create_graph` using `matplotlib`.
+
+### Parameters
+
+- `G` (networkx.DiGraph): The graph to be visualized.
+
+### Code Snippet
+
+```python
+def visualize_graph(G):
+    pos = nx.spring_layout(G)
+    plt.figure(figsize=(12, 8))
+    
+    # Draw nodes
+    nx.draw_networkx_nodes(G, pos, node_size=700, node_color='lightblue')
+    
+    # Draw edges
+    nx.draw_networkx_edges(G, pos, edge_color='gray', arrows=True)
+    
+    # Draw labels
+    labels = {node: f"{data['type']}:\n{data['name']}" for node, data in G.nodes(data=True)}
+    nx.draw_networkx_labels(G, pos, labels, font_size=8)
+    
+    plt.title("Code Structure and Dependencies")
+    plt.axis('off')
+    plt.tight_layout()
+    plt.savefig("code_graph.png", format="png", dpi=300)
+    plt.close()
+```
+
+## Usage Examples
+
+### Setup
+
+1. Ensure all dependencies are installed:
+    ```bash
+    pip install ast os collections networkx matplotlib
+    ```
+
+2. Place the `CodeAnalyzer` code in a Python file, e.g., `code_analyzer.py`.
+
+### Common Use Cases
+
+- Analyze a single file:
+    ```python
+    definitions, usages = analyze_file('path/to/file.py', 'relative/path/to/file.py')
+    ```
+
+- Analyze an entire project:
+    ```python
+    analysis = analyze_project('path/to/project')
+    ```
+
+- Create and visualize the graph:
+    ```python
+    G = create_graph(analysis)
+    visualize_graph(G)
+    ```
+
+### Example Input/Output
+
+- Input:
+    ```python
+    project_path = './sample_project'
+    analysis = analyze_project(project_path)
+    G = create_graph(analysis)
+    visualize_graph(G)
+    ```
+
+- Output:
+    ```
+    Graph has been saved as 'code_graph.png'
+    ```
+
+## Error Handling and Edge Cases
+
+The tool is designed to handle common errors gracefully, such as file not found or syntax errors in Python files. Edge cases include handling of nested classes and functions, and multiple assignments in a single statement.
+
+## Performance Considerations
+
+The tool's performance is largely dependent on the size of the codebase being analyzed. For large projects, consider parallelizing the file analysis or optimizing the graph creation and visualization processes.
 
 ## Testing and Debugging
-The tool can be tested by running it on a sample project and verifying the output graph. Debugging can be done by inspecting the intermediate data structures (`definitions` and `usages`) and the constructed graph.
 
-## Configuration Options
-There are no specific configuration options for the tool itself, but users can modify the `project_path` variable to analyze different projects.
+- Unit tests should be created for each function and method to ensure correctness.
+- Use logging to track the progress and debug issues during the analysis.
 
-## Conclusion
-The `CodeAnalyzer` is a powerful tool for understanding and visualizing the structure and dependencies of a Python project. By providing insights into code elements and their relationships, it aids in code refactoring and maintenance.
-```
+## Configuration and Customization
+
+- The tool can be extended to include additional code elements or to customize the graph visualization.
+
+## Role in the Overall Architecture
+
+The `CodeAnalyzer` is a standalone tool that can be integrated into larger development workflows for code analysis and visualization.
+
+## Known Limitations and Future Improvements
+
+- The tool currently does not handle dynamic imports or code executed conditionally.
+- Future improvements could include support for more complex code structures and better visualization options.
+
+## Contribution Guidelines
+
+Contributions are welcome! Please fork the repository, make your changes, and submit a pull request. Ensure that your code is well-documented and includes tests.
+
+## Major Updates and Documentation History
+
+- **Version 1.0**: Initial release of the `CodeAnalyzer` tool.
+
+## Summary
+
+The `CodeAnalyzer` is a powerful tool for analyzing and visualizing Python codebases, providing developers with valuable insights into code structure, dependencies, and usage. Its modular design and extensibility make it a valuable asset for any development team looking to understand and optimize their code.
